@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
-void FloyedWarshall(vector<vector<int>> adj, int V, vector<vector<int>> &path)
+void FloyedWarshall(vector<vector<int>>&adj, int V, vector<vector<int>> &path)
 {
     for (int k = 0; k < V; k++)
     {
@@ -49,7 +49,7 @@ int main()
     for (int i = 0; i < V; i++)
     {
 
-        if (adj[i][i] <= 0)
+        if (adj[i][i] <0)
         {
             cout << "Has a negative cycle ";
         }
