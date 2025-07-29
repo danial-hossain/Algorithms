@@ -2,15 +2,16 @@
 using namespace std;
 int BinaryFreqCountL(int arr[],int start,int end,int key){
     int count=0;
+    int mid;
     while(start<=end)
     {
      
-        int mid=(start+end)/2;
+       mid =(start+end)/2;
      
         if(key==arr[mid])
         {
            
-            ++count;
+          
             end=mid-1;
         }
        else if(key<arr[mid])
@@ -24,14 +25,15 @@ int BinaryFreqCountL(int arr[],int start,int end,int key){
             start=mid+1;
         }
     }
-    return count;
+    return mid;
 }
 int BinaryFreqCountR(int arr[],int start,int end,int key){
     int count=0;
+    int mid;
     while(start<=end)
     {
      
-        int mid=(start+end)/2;
+        mid=(start+end)/2;
      
         if(key==arr[mid])
         {
@@ -50,12 +52,12 @@ int BinaryFreqCountR(int arr[],int start,int end,int key){
             start=mid+1;
         }
     }
-    return count;
+    return mid;
 }
 int main()
 {
-    int arr[]={0,0,1,1,0};
-    int count1=BinaryFreqCountL(arr,0,5-1,1);
-    int count2=BinaryFreqCountR(arr,0,5-1,1);
-    cout<<(count1+count2-1);
+    int arr[]={0,1,1,1,1,1};
+    int count1=BinaryFreqCountL(arr,0,6-1,1);
+    int count2=BinaryFreqCountR(arr,0,6-1,1);
+    cout<<(count2-count1+1);
 }

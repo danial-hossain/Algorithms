@@ -1,11 +1,11 @@
 #include<bits/stdc++.h>
 using namespace std;
-bool DijkStraTotalSP(vector<pair<int,int>>adj[],int V,vector<int>&visited,vector<int>&distance,vector<int>&path)
+void DijkStraTotalSP(vector<pair<int,int>>adj[],int V,vector<int>&visited,vector<int>&distance,vector<int>&parent)
 {
     int count=V;
-   bool flag=false;
+
     distance[0]=0;
-    path[0]=1;
+
     while(count>0)
     {
         int node=-1;
@@ -21,44 +21,19 @@ bool DijkStraTotalSP(vector<pair<int,int>>adj[],int V,vector<int>&visited,vector
         visited[node]=1;
         for(int i=0;i<adj[node].size();i++)
         {
+            int neighbour=adj[node][i].first;
             int weight=adj[node][i].second;
-            if(distance[adj[node][i].first]>distance[node] +weight)
+            if( distance[neighbour]>distance[node] +weight)
             {
-                  distance[adj[node][i].first]=distance[node] +weight;
-                  path[adj[node][i].first]=path[node];
-            }
-        
-        }
-        count--;
-    }
- 
-    {
-        int node=-1;
-        int dis=INT_MAX;
-        for(int i=0;i<V;i++)
-        {
-            if(dis>distance[i] && !visited[i])
-            {
-                dis=distance[i];
-                node=i;
-            }
-        }
-        visited[node]=1;
-        for(int i=0;i<adj[node].size();i++)
-        {
-            int weight=adj[node][i].second;
-            if(distance[adj[node][i].first]>distance[node] +weight)
-            {
-                  distance[adj[node][i].first]=distance[node] +weight;
-                  flag=true;
-                  path[adj[node][i].first]=path[node];
-            }
-        
-        }
-        count--;
-    }
-    return flag;
+                  distance[neighbour]=distance[node] +weight;
 
+                  parent[neighbour] = node;
+
+            }
+
+        }
+        count--;
+    }
 }
 int main()
 {
@@ -70,26 +45,42 @@ int main()
         int u,v,w;
         cin>>u>>v>>w;
         adj[u].push_back(make_pair(v,w));
+        adj[v].push_back(make_pair(u,w));
+
     }
     vector<int>distance(V,INT_MAX);
     vector<int>visited(V,0);
-    vector<int>path(V,0);
-   bool flag= DijkStraTotalSP(adj,V,visited,distance,path);
+    vector<int>parent(V,-1);
+    DijkStraTotalSP(adj,V,visited,distance,parent);
     for(auto i: distance)
     {
         cout<<i<< " ";
     }
     cout<<endl;
-    for(auto i: path)
+    cout<<"Enter the vertices we need distances ";
+    int n,m;
+    cin>>n >>m;
+    cout<<distance[m];
+    cout<<endl;
+    cout<<"Enter the destination node : " <<endl;
+    int des;
+    cin>>des;
+    vector<int>path;
+    cout<<endl;
+
+    while(parent[des]!=-1)
     {
-        cout<<i<< " ";
+       path.push_back(des);
+        des=parent[des];
     }
-    if(flag)
+
+    path.push_back(des);
+
+    reverse(path.begin(),path.end());
+    for(int i=0;i<path.size();i++)
     {
-        cout<<"Negative Cycle Detected ";
+        cout<<path[i]<<" ";
     }
-    else
-    {
-        cout<<"No Neg Cycle ";
-    }
+    cout<<path.size();
+
 }
