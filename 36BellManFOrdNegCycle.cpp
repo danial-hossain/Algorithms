@@ -69,6 +69,7 @@ int main()
         cycle.push_back(des);
         des = parent[des];
     } while (des != 1);
+    cycle.push_back(1);
     reverse(cycle.begin(),cycle.end());
     for (auto i : cycle)
     {
