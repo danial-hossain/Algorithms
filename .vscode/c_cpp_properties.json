@@ -3,17 +3,15 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "C:\\MinGW\\include"
-                
+                ""
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "C:\\MinGW\\bin\\gcc.exe",
-            "intelliSenseMode": "windows-msvc-x64"
+            "compilerPath": "C:/MinGW/MinGW/bin/g++.exe",
+            "intelliSenseMode": "macos-gcc-x86"
         }
     ],
     "version": 4
