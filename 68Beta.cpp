@@ -43,39 +43,28 @@ void BellmanFord(vector<vector<int>> adj, int V, int E, vector<int> &distance, b
 }
 
 // ----------------- Dijkstra -----------------
-void Dijkstra(vector<pair<int, int>> adj[], int V, int src, vector<int> &distance)
-{
-    vector<int> visited(V, 0);
+void Dijkstra(vector<pair<int,int>> adj[], int V, int src, vector<int>& distance) {
     distance.assign(V, INF);
     distance[src] = 0;
 
-    int count = V;
-    while (count > 0)
-    {
-        int node = -1;
-        int dist = INT_MAX;
-        for (int i = 0; i < V; i++)
-        {
-            if (!visited[i] && distance[i] < dist)
-            {
-                dist = distance[i];
-                node = i;
-            }
-        }
-        if (node == -1)
-            break;
-        visited[node] = 1;
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+    pq.push({0, src});
 
-        for (int j = 0; j < adj[node].size(); j++)
-        {
-            int neighbour = adj[node][j].first;
-            int weight = adj[node][j].second;
-            if (distance[neighbour] > distance[node] + weight)
-            {
+    while (!pq.empty()) {
+        int node = pq.top().second;
+        int distNode = pq.top().first;
+        pq.pop();
+
+        if (distNode > distance[node]) continue; // skip outdated entry
+
+        for (auto &edge : adj[node]) {
+            int neighbour = edge.first;
+            int weight = edge.second;
+            if (distance[neighbour] > distance[node] + weight) {
                 distance[neighbour] = distance[node] + weight;
+                pq.push({distance[neighbour], neighbour});
             }
         }
-        count--;
     }
 }
 
@@ -188,7 +177,7 @@ void generateDenseGraph(int V, vector<vector<int>> &edges)
     edges.clear();
     set<pair<int, int>> used;
     srand(time(0));
-    while ((int)edges.size() < 1225)
+    while ((int)edges.size() < 249500)
     {
         int u = rand() % V;
         int v = rand() % V;
@@ -274,7 +263,7 @@ int main()
     cout << "Algorithm" << "      | " << "Graph Type" << "| " << "Nodes" << " | " << "Edges" << " | " << "Execution Time(s)" << "   | " << "Energy(J)" << "   | " << "Peak Memory(KB)" << " | " << "CO2 Emissions (kg,BD)" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------" << endl;
 
-    int V = 50;
+    int V = 500;
     int sparseE = 125;
     vector<vector<int>> sparseEdges, denseEdges;
     vector<vector<int>> sparseMatrix, denseMatrix;
