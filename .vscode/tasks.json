@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-cpp",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-g",
+        "${file}",                                  // current file
+        "-o",
+        "${fileDirname}\\${fileBasenameNoExtension}.exe", // output exe in same folder
+        "-lpsapi"                                  // link with psapi
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}
