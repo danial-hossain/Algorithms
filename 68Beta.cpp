@@ -177,7 +177,7 @@ void generateDenseGraph(int V, vector<vector<int>> &edges)
     edges.clear();
     set<pair<int, int>> used;
     srand(time(0));
-    while ((int)edges.size() < 249500)
+    while ((int)edges.size() < 1250)
     {
         int u = rand() % V;
         int v = rand() % V;
