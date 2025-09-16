@@ -14,13 +14,15 @@ using namespace std;
 
 // ---------------- Prim's Algorithm ----------------
 // PQ-based for sparse graphs, Array-based for dense graphs
-int Prims(int V, vector<vector<pair<int,int>>> &adj, bool dense = false) {
+int PrimsOptimized(int V, vector<vector<pair<int,int>>> &adj, bool dense = false) {
     if(!dense) {
-        // Sparse: PQ-based
-        priority_queue<pair<int, int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+        // Sparse: optimized PQ-based
+        vector<int> key(V, INF);
         vector<bool> inMST(V,false);
+        key[0] = 0;
+        priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+        pq.push({0,0});
         int cost = 0;
-        pq.push({0,0}); // {weight,node}
 
         while(!pq.empty()) {
             auto [wt,u] = pq.top(); pq.pop();
@@ -30,7 +32,10 @@ int Prims(int V, vector<vector<pair<int,int>>> &adj, bool dense = false) {
 
             for(auto &edge : adj[u]) {
                 int v = edge.first, w = edge.second;
-                if(!inMST[v]) pq.push({w,v});
+                if(!inMST[v] && w < key[v]) {
+                    key[v] = w;
+                    pq.push({w,v});
+                }
             }
         }
         return cost;
@@ -43,17 +48,14 @@ int Prims(int V, vector<vector<pair<int,int>>> &adj, bool dense = false) {
 
         for(int count = 0; count < V; ++count) {
             int u = -1;
-            for(int i = 0; i < V; ++i) {
-                if(!inMST[i] && (u == -1 || key[i] < key[u]))
-                    u = i;
-            }
+            for(int i = 0; i < V; ++i)
+                if(!inMST[i] && (u==-1 || key[i]<key[u])) u = i;
             inMST[u] = true;
             cost += key[u];
 
             for(auto &edge : adj[u]) {
                 int v = edge.first, w = edge.second;
-                if(!inMST[v] && w < key[v])
-                    key[v] = w;
+                if(!inMST[v] && w < key[v]) key[v] = w;
             }
         }
         return cost;
@@ -67,20 +69,18 @@ int FindParent(int u, vector<int> &parent) {
 }
 
 void UnionByRank(int u, int v, vector<int> &parent, vector<int> &rank) {
-    int pu = FindParent(u, parent);
-    int pv = FindParent(v, parent);
+    int pu = FindParent(u,parent);
+    int pv = FindParent(v,parent);
     if(rank[pu] < rank[pv]) parent[pu] = pv;
     else if(rank[pu] > rank[pv]) parent[pv] = pu;
-    else { parent[pv] = pu; rank[pu]++; }
+    else { parent[pv]=pu; rank[pu]++; }
 }
 
 int Kruskal(int V, vector<vector<int>> &edges) {
     vector<int> parent(V), rank(V,0);
     for(int i=0;i<V;i++) parent[i]=i;
 
-    sort(edges.begin(), edges.end(), [](vector<int> &a, vector<int> &b){
-        return a[2] < b[2];
-    });
+    sort(edges.begin(), edges.end(), [](vector<int> &a, vector<int> &b){ return a[2]<b[2]; });
 
     int cost=0, edgesCount=0;
     for(auto &e : edges){
@@ -145,7 +145,7 @@ int main(){
     cout << "Algorithm      | Graph Type| Nodes | Edges | Execution Time(s)   | Energy(J)   | Peak Memory(KB) | CO2 Emissions (kg,BD)" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------" << endl;
 
-    int V=500, sparseE=600;
+    int V=50, sparseE=125;
     vector<vector<int>> sparseEdges, denseEdges;
     generateSparseGraph(V,sparseE,sparseEdges);
     generateDenseGraph(V,denseEdges);
@@ -164,30 +164,30 @@ int main(){
     LARGE_INTEGER freq,start,end;
     QueryPerformanceFrequency(&freq);
 
-    // Sparse Graph
+    // -------- Sparse Graph --------
     QueryPerformanceCounter(&start);
-    Prims(V, sparseAdj, false);
+    PrimsOptimized(V, sparseAdj, false);
     QueryPerformanceCounter(&end);
-    cout << "Prims        | Sparse    | 50    | 125   | ";
+    cout << "PrimsOptimized | Sparse    | 50    | 125   | ";
     PerformanceMeasure(start,end,freq); cout<<endl;
 
     QueryPerformanceCounter(&start);
     Kruskal(V,sparseEdges);
     QueryPerformanceCounter(&end);
-    cout << "Kruskal      | Sparse    | 50    | 125   | ";
+    cout << "Kruskal        | Sparse    | 50    | 125   | ";
     PerformanceMeasure(start,end,freq); cout<<endl;
 
-    // Dense Graph
+    // -------- Dense Graph --------
     QueryPerformanceCounter(&start);
-    Prims(V, denseAdj, true);
+    PrimsOptimized(V, denseAdj, true);
     QueryPerformanceCounter(&end);
-    cout << "Prims        | Dense     | 50    | 1225  | ";
+    cout << "Prims           | Dense     | 50    | 1225  | ";
     PerformanceMeasure(start,end,freq); cout<<endl;
 
     QueryPerformanceCounter(&start);
     Kruskal(V,denseEdges);
     QueryPerformanceCounter(&end);
-    cout << "Kruskal      | Dense     | 50    | 1225  | ";
+    cout << "Kruskal        | Dense     | 50    | 1225  | ";
     PerformanceMeasure(start,end,freq); cout<<endl;
 
     return 0;
