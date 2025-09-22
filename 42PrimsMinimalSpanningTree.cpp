@@ -6,6 +6,9 @@ int spanningTree(int V, vector<vector<pair<int, int>>> &adj)
     // Priority queue -> {weight, {node, parent}}
     priority_queue<pair<int, pair<int, int>>,vector<pair<int, pair<int, int>>>,greater<pair<int, pair<int, int>>>>
         pq;
+        //for one pair-->got get --> top.first()
+        //for pair inside pair -->top.second.first
+        //structure{Weight,Node,Parent}
 
     vector<bool> IsMST(V, 0);
     vector<int> parent(V, -1);
