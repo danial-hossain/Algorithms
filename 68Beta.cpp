@@ -1,274 +1,232 @@
-#include <windows.h>       // Windows API for performance and memory measurement
-#include <psapi.h>         // Process Status API, to get memory usage
-#include <bits/stdc++.h>   // Includes all standard C++ headers
-#pragma comment(lib, "Psapi.lib") // Link the Psapi library for memory functions
+#include <windows.h>
+#include <psapi.h>
+#include <bits/stdc++.h>
+#pragma comment(lib, "Psapi.lib")
 
-#define CPU_POWER_WATTS 65.0          // Approximate CPU power consumption in watts
-#define BD_EMISSION_FACTOR 0.62       // kg CO2 per kWh in Bangladesh
+#define CPU_POWER_WATTS 65.0
+#define BD_EMISSION_FACTOR 0.62
 
-const int INF = 1e9;                 // Represents "infinity" for unreachable nodes
-const int MIN_WEIGHT = 1;            // Minimum edge weight,Uddipok e deya
-const int MAX_WEIGHT = 100;          // Maximum edge weight,Uddipok e deya
+const int INF = 1e9;
+const int MIN_WEIGHT = 1;
+const int MAX_WEIGHT = 100;
 
 using namespace std;
 
-// ----------------- Bellman-Ford -----------------
-// Computes shortest paths from a source in a graph, detects negative cycles
-void BellmanFord(vector<vector<int>> adj, int V, int E, vector<int> &distance, bool &flag)
-{
-    distance[V - 1] = 0; // Add a virtual source at index V-1,Suppose Total node cilo 0-4,5 ta
-    //Akta node add krlam,Total node 6-->0,1,2,3,4,5 ;so 5 is our new node
-    for (int i = 0; i < V - 1; i++)  // Relax all edges V-1 times,Bellman Ford,Outer loop V-1 times
-    {
-        for (int j = 0; j < E; j++) //Iterate For Each Edges in Edge list
-        {
-            int u = adj[j][0];
-            int v = adj[j][1];
-            int w = adj[j][2];
-            if (distance[u] != INF && distance[v] > distance[u] + w)
-            {
-                distance[v] = distance[u] + w;  // Relax edge
+// ---------------- Prim's Algorithm ----------------
+
+int Prims2(int V, vector<vector<pair<int,int>>> &adj){
+    vector<int> key(V, INF);
+    vector<bool> inMST(V, false);
+    key[0] = 0;
+    int cost = 0;
+
+    for(int i=0;i<V;i++){
+        int u=-1;
+        for(int j=0;j<V;j++){
+            if(!inMST[j] && (u==-1 || key[j]<key[u])) u=j;
+        }
+        inMST[u] = true;
+        cost += key[u];
+
+        for(int j = 0; j < adj[u].size(); j++) {
+            int v = adj[u][j].first;
+            int w = adj[u][j].second;
+            if(!inMST[v] && w < key[v]){
+                key[v] = w;
             }
         }
     }
-
-    flag = false; // Initialize negative cycle flag
-    for (int j = 0; j < E; j++) // Check for negative cycles
-    {
-        int u = adj[j][0];
-        int v = adj[j][1];
-        int w = adj[j][2];
-        if (distance[u] != INF && distance[v] > distance[u] + w)
-        {
-            flag = true; // Negative cycle detected
-            //Minimum Distance Graph Ber korar por arekta  All Edge check dile jodi distance kome-->Negative Cycle Exists
-        }
-    }
+    return cost;
 }
 
-// ----------------- Dijkstra -----------------
-// Computes single-source shortest path for graphs with non-negative weights
-void Dijkstra(vector<pair<int,int>> adj[], int V, int src, vector<int>& distance) {
 
-    distance.assign(V, INF);    // Initialize distances to INF
-    //distance.assign-->vector<int>distance(V,INF)
-    distance[src] = 0;          // Distance to source is 0
+int Prims(int V, vector<vector<pair<int,int>>> &adj,bool sparse) {
+    if(sparse){
+   // Priority queue -> {weight, {node, parent}}
+    priority_queue<pair<int, pair<int, int>>,vector<pair<int, pair<int, int>>>,greater<pair<int, pair<int, int>>>>
+        pq;
+        //for one pair-->got get --> top.first()
+        //for pair inside pair -->top.second.first
+        //structure{Weight,Node,Parent}
 
-    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
-    pq.push({0, src});          // Push source vertex into priority queue
-    //source ke pariority queue te push
+    vector<bool> IsMST(V, 0);
+    vector<int> parent(V, -1);
 
-    while (!pq.empty()) {
-        int node = pq.top().second;
+    int cost = 0;
+    pq.push({0, {0, -1}}); // {weight, {node, parent}}
 
-        int distNode = pq.top().first;
+    while (!pq.empty())
+    {
+        int wt = pq.top().first;
+        int node = pq.top().second.first;
+        int par = pq.top().second.second;
         pq.pop();
 
-        if (distNode > distance[node]) continue; // Skip outdated entry
-        //Ei condition ta check na krleo hoy cuz distance[node]/Neightbour Distace theke jodi Source noder weight e boro hoye jay jibone update hobena
+        if (!IsMST[node])
+        {
+            IsMST[node] = 1;
+            cost += wt;
+            parent[node] = par;
 
-        //Dijkstra still works correctly because you only update a neighbor if the new path is shorter than the current stored distance
+            for (int j = 0; j < adj[node].size(); j++)
+            {
+                int adjNode = adj[node][j].first;
+                int edgeWt = adj[node][j].second;
 
-        for (auto &edge : adj[node]) {           // Explore neighbors
-                //Sob gula neightbour node check korteci
-            int neighbour = edge.first;
-            int weight = edge.second;
-            if (distance[neighbour] > distance[node] + weight) {
-                //shortest distance update
-                distance[neighbour] = distance[node] + weight; // Relax edge
-        //Amra node select kre update kore dijkstra e ,akbar kono node select hole setake abr update korbona
-                pq.push({distance[neighbour], neighbour});
+                if (!IsMST[adjNode])
+                {
+                    pq.push({edgeWt, {adjNode, node}});
+                }
             }
         }
     }
+
+    return cost;
+    }
+    else {
+               vector<int> key(V, INF);
+    vector<bool> inMST(V, false);
+    key[0] = 0;
+    int cost = 0;
+
+    for(int i=0;i<V;i++){
+        int u=-1;
+        for(int j=0;j<V;j++){
+            if(!inMST[j] && (u==-1 || key[j]<key[u])) u=j;
+        }
+        inMST[u] = true;
+        cost += key[u];
+
+        for(int j = 0; j < adj[u].size(); j++) {
+            int v = adj[u][j].first;
+            int w = adj[u][j].second;
+            if(!inMST[v] && w < key[v]){
+                key[v] = w;
+            }
+        }
+    }
+    return cost;
+
+    }
 }
 
-// ----------------- Johnson -----------------
-// Computes all-pairs shortest paths efficiently for sparse graphs
-void Johnson(int V, int E, vector<vector<int>> &edges)
+
+// ---------------- Kruskal's Algorithm ----------------
+int FindParent(int u, vector<int> &parent)
 {
+    if (u == parent[u])
+        return u;
+
+    return parent[u] = FindParent(parent[u], parent);
+}
+
+void UnionByRank(int u, int v, vector<int> &parent, vector<int> &rank)
+{
+    int pu = FindParent(u, parent);
+    int pv = FindParent(v, parent);
+
+    if (rank[pu] < rank[pv])
+    {
+        parent[pu] = pv;
+    }
+    else if (rank[pu] > rank[pv])
+    {
+        parent[pv] = pu;
+    }
+    else
+    {
+        parent[pv] = pu;
+        rank[pu]++;
+    }
+}
+
+int Kruskal(int V, vector<vector<int>> &edges)
+{
+    vector<int> parent(V);
+    vector<int> rank(V, 0);
     for (int i = 0; i < V; i++)
+        parent[i] = i;
+
+
+
+    priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> pq;
+
+    for (auto &e : edges)
     {
-        edges.push_back({V, i, 0}); // Add extra vertex for Bellman-Ford reweighting
-        //je node ta dhore nisilam oita theke sob node je distance 0,akon ei edge listao edge[list] e dukalam
+        pq.push({e[2], {e[0], e[1]}});
     }
 
-    vector<int> h(V + 1, INF); // Potential array for edge reweighting
-    //reweighting --> w'(u,v)=distance[u]+w(u,v)-distance[v]
-
-    bool flag;
-    BellmanFord(edges, V + 1, E + V, h, flag); // Run Bellman-Ford
-
-    if (flag) // Negative cycle check
+    int cost = 0, edgeCount = 0;
+    while (!pq.empty())
     {
-        cout << "Graph has a negative cycle!\n";
-        return;
-    }
+        int wt = pq.top().first;
+        int u = pq.top().second.first;
+        int v = pq.top().second.second;
+        pq.pop();
 
-    vector<pair<int, int>> adj[V]; // Adjacency list for reweighted graph
-    for (int i = 0; i < edges.size(); i++)
-    {
-        int u = edges[i][0];
-        int v = edges[i][1];
-        int w = edges[i][2];
-        if (u == V) // Skip virtual vertex
-            continue;
-        int w_new = w + h[u] - h[v]; // Reweight edge to remove negatives
-         //reweighting --> w'(u,v)=distance[u]+w(u,v)-distance[v]
-
-        adj[u].push_back(make_pair(v, w_new));
-    }
-
-    vector<vector<int>> distAll(V, vector<int>(V, INF)); // Store all-pairs distances
-    for (int u = 0; u < V; u++)
-    {
-        vector<int> dist;
-        Dijkstra(adj, V, u, dist); // Run Dijkstra from each vertex
-        for (int v = 0; v < V; v++)
+        if (FindParent(u, parent) != FindParent(v, parent))
         {
-            if (dist[v] < INF)
-            {
-                distAll[u][v] = dist[v] + h[v] - h[u]; // Restore original distances
-                //d(u,v)=d'(u,v) + h[v]-h[u] ;ekhane h holo bellman for run kore amra je distacne array ta pelam
-                //d holo distance array jeta amra akta source dhore dijkstra theke pabo
-            }
+            cost += wt;
+            UnionByRank(u, v, parent, rank);
+            edgeCount++;
         }
+        if (edgeCount == V - 1)
+            break;
     }
+    return cost;
 }
 
-// ----------------- Floyd-Warshall -----------------
-// Computes all-pairs shortest paths for any graph (including negative edges)
-void FloydWarshall(vector<vector<int>> &matrix)
-{
-    int n = matrix.size();
-    //eikhane alada vertex dite hoynai cuz maxtrix.size gives the total number of row of the matrix,oitare vertex e bola jay
-
-    // Replace -1 with INT_MAX to represent infinity
-    //FLoyed warshall e amra surute sob edge infinity dhori oita
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            if (matrix[i][j] == -1)
-                matrix[i][j] = INT_MAX;
-        }
-    }
-
-    // Main triple loop
-    for (int k = 0; k < n; k++)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
-                if (matrix[i][k] == INT_MAX || matrix[k][j] == INT_MAX)
-                    continue;
-                matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j]);
-            }
-        }
-    }
-
-    // Restore -1 for unreachable paths
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            if (matrix[i][j] == INT_MAX)
-                matrix[i][j] = -1;
-        }
-    }
-}
-
-// ----------------- Graph Generators -----------------
-// Sparse edge list
+// ---------------- Graph Generators ----------------
 void generateSparseGraph(int V, int E, vector<vector<int>> &edges)
 {
     edges.clear();
-    //edge vector e age kicu thakle oita clear kore nilam ;optional use case
-    set<pair<int, int>> used;   // Track edges to avoid duplicates
+    set<pair<int, int>> used;
     srand(time(0));
     while ((int)edges.size() < E)
     {
-        int u = rand() % V;
-        int v = rand() % V;
-        if (u == v) continue;           // No self-loops
-        if (used.count(make_pair(u, v))) continue; // Skip duplicate
+        int u = rand() % V, v = rand() % V;
+        if (u == v || used.count(make_pair(u, v)) || used.count(make_pair(v, u)))
+            continue;
         int w = MIN_WEIGHT + rand() % (MAX_WEIGHT - MIN_WEIGHT + 1);
-        edges.push_back({u, v, w});
+        vector<int> e;
+        e.push_back(u);
+        e.push_back(v);
+        e.push_back(w);
+        edges.push_back(e);
         used.insert(make_pair(u, v));
     }
 }
 
-// Dense edge list
 void generateDenseGraph(int V, vector<vector<int>> &edges)
 {
     edges.clear();
-    set<pair<int, int>> used;
+    set<pair<int,int>> used;
     srand(time(0));
-    while ((int)edges.size() < 1225) // V*(V-1)/2 for 50 nodes
+    int totalEdges = V * (V-1) / 2;
+    while ((int)edges.size() < totalEdges)
     {
-        int u = rand() % V;
-        int v = rand() % V;
-        if (u == v) continue;
-        if (used.count(make_pair(u, v))) continue;
+        int u = rand() % V, v = rand() % V;
+        if(u == v || used.count({u,v}) || used.count({v,u})) continue;
         int w = MIN_WEIGHT + rand() % (MAX_WEIGHT - MIN_WEIGHT + 1);
         edges.push_back({u, v, w});
-        used.insert(make_pair(u, v));
+        used.insert({u,v});
     }
 }
 
-// Sparse adjacency matrix
-void generateSparseMatrix(int V, int E, vector<vector<int>> &matrix)
-{
-    matrix.assign(V, vector<int>(V, -1)); // Initialize with -1 (no edge)
-    for (int i = 0; i < V; i++)
-        matrix[i][i] = 0; // Distance to self is 0
 
-    set<pair<int, int>> used;
-    srand(time(0));
-    while ((int)used.size() < E)
-    {
-        int u = rand() % V;
-        int v = rand() % V;
-        if (u == v) continue;
-        if (used.count({u, v})) continue;
-        int w = MIN_WEIGHT + rand() % (MAX_WEIGHT - MIN_WEIGHT + 1);
-        matrix[u][v] = w;
-        used.insert({u, v});
-    }
-}
-
-// Dense adjacency matrix
-void generateDenseMatrix(int V, vector<vector<int>> &matrix)
-{
-    matrix.assign(V, vector<int>(V, -1));
-    for (int i = 0; i < V; i++)
-        matrix[i][i] = 0;
-
-    for (int u = 0; u < V; u++)
-    {
-        for (int v = 0; v < V; v++)
-        {
-            if (u == v) continue;
-            int w = MIN_WEIGHT + rand() % (MAX_WEIGHT - MIN_WEIGHT + 1);
-            matrix[u][v] = w;
-        }
-    }
-}
-
-// ----------------- Performance Measurement -----------------
+// ---------------- Performance Measurement ----------------
 void PerformanceMeasure(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER freq)
 {
-    double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart; // Time in seconds
-    double energy = CPU_POWER_WATTS * elapsed;                                 // Energy in Joules
-    double energy_kWh = energy / 3.6e6;                                         // Convert to kWh
-    double co2 = energy_kWh * BD_EMISSION_FACTOR;                               // CO2 in kg
+    double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
+    double energy = CPU_POWER_WATTS * elapsed;
+    double energy_kWh = energy / 3.6e6;
+    double co2 = energy_kWh * BD_EMISSION_FACTOR;
 
     PROCESS_MEMORY_COUNTERS_EX pmc;
     if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS *)&pmc, sizeof(pmc)))
     {
-        SIZE_T peakMemUsed = pmc.PeakWorkingSetSize; // Peak memory in bytes
-        cout <<""<<elapsed <<"           | "<< energy<<"    |  " << peakMemUsed<<"      |  " << co2;
+        SIZE_T peakMemUsed = pmc.PeakWorkingSetSize;
+        cout << elapsed << "           | " << energy << "    | " << peakMemUsed << "      | " << co2;
     }
     else
     {
@@ -279,54 +237,61 @@ void PerformanceMeasure(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER fr
 // ----------------- Main -----------------
 int main()
 {
-    // Header for performance table
     cout << "----------------------------------------------------------------------------------------------------------------" << endl;
-    cout << "Algorithm" << "      | " << "Graph Type" << "| " << "Nodes" << " | " << "Edges" << " | " << "Execution Time(s)" << "   | " << "Energy(J)" << "   | " << "Peak Memory(KB)" << " | " << "CO2 Emissions (kg,BD)" << endl;
+    cout << "Algorithm      | Graph Type| Nodes | Edges | Execution Time(s)   | Energy(J)   | Peak Memory(KB) | CO2 Emissions (kg,BD)" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------" << endl;
 
-    int V = 50;                 // Number of vertices
-    int sparseE = 125;          // Number of edges in sparse graph
-    vector<vector<int>> sparseEdges, denseEdges;  // Edge lists
-    vector<vector<int>> sparseMatrix, denseMatrix; // Adjacency matrices
+    int V = 50, sparseE = 125;
+    vector<vector<int>> sparseEdges, denseEdges;
+    generateSparseGraph(V, sparseE, sparseEdges);
+    generateDenseGraph(V, denseEdges);
 
-    generateSparseGraph(V, sparseE, sparseEdges);  // Sparse edge list
-    generateDenseGraph(V, denseEdges);            // Dense edge list
-
-    generateSparseMatrix(V, sparseE, sparseMatrix); // Sparse matrix
-    generateDenseMatrix(V, denseMatrix);           // Dense matrix
+    // Build adjacency lists
+    vector<vector<pair<int, int>>> sparseAdj(V), denseAdj(V);
+    for (int i = 0; i < sparseEdges.size(); i++)
+    {
+        int u = sparseEdges[i][0], v = sparseEdges[i][1], w = sparseEdges[i][2];
+        sparseAdj[u].push_back(make_pair(v, w));
+        sparseAdj[v].push_back(make_pair(u, w));
+    }
+    for (int i = 0; i < denseEdges.size(); i++)
+    {
+        int u = denseEdges[i][0], v = denseEdges[i][1], w = denseEdges[i][2];
+        denseAdj[u].push_back(make_pair(v, w));
+        denseAdj[v].push_back(make_pair(u, w));
+    }
 
     LARGE_INTEGER freq, start, end;
-    QueryPerformanceFrequency(&freq); // Timer frequency
-
+    QueryPerformanceFrequency(&freq);
     // -------- Sparse Graph --------
     QueryPerformanceCounter(&start);
-    Johnson(V, sparseEdges.size(), sparseEdges); // Johnson on sparse
+    Prims(V, sparseAdj,true); // <- Use Prims here
     QueryPerformanceCounter(&end);
-    cout << "Johnson        | Sparse    | 50    | 125   | ";
+    cout << "Prims          | Sparse    | 50    | 125   | ";
     PerformanceMeasure(start, end, freq);
-    cout<<endl;
+    cout << endl;
 
     QueryPerformanceCounter(&start);
-    FloydWarshall(sparseMatrix); // Floyd-Warshall on sparse
+    Kruskal(V, sparseEdges);
     QueryPerformanceCounter(&end);
-    cout << "Floyd-Warshall | Sparse    | 50    | 125   | ";
+    cout << "Kruskal        | Sparse    | 50    | 125   | ";
     PerformanceMeasure(start, end, freq);
-    cout<<endl;
+    cout << endl;
 
     // -------- Dense Graph --------
     QueryPerformanceCounter(&start);
-    Johnson(V, denseEdges.size(), denseEdges); // Johnson on dense
+    Prims(V, denseAdj,false); // <- Use Prims here
     QueryPerformanceCounter(&end);
-    cout << "Johnson        | Dense     | 50    | 1225  | ";
+    cout << "Prims          | Dense     | 50    | 1225  | ";
     PerformanceMeasure(start, end, freq);
-    cout<<endl;
+    cout << endl;
 
     QueryPerformanceCounter(&start);
-    FloydWarshall(denseMatrix); // Floyd-Warshall on dense
+    Kruskal(V, denseEdges);
     QueryPerformanceCounter(&end);
-    cout << "Floyd-Warshall | Dense     | 50    | 1225  | ";
+    cout << "Kruskal        | Dense     | 50    | 1225  | ";
     PerformanceMeasure(start, end, freq);
+    cout << endl;
 
     return 0;
 }
-
