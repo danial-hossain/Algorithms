@@ -1,0 +1,13 @@
+Sparse Graph:
+We know the time complexity of Johnson’s algorithm is O(VE log V), while Floyd-Warshall is O(V³). A sparse graph is an incomplete graph where not all nodes are connected. From the time complexity, we might assume that Johnson should be faster. However, in our practical case, Johnson is slightly slower due to overhead issues, such as push/pop operations in the priority queue, creating vectors, and converting the edge list to an adjacency list for Dijkstra. These extra steps are required by the program but are not part of the core algorithm. On the other hand, Floyd-Warshall uses triple nested loops with no such overhead. Therefore, for a small graph with 50 nodes, Floyd-Warshall performs better. However, as the number of nodes increases, Johnson outshines Floyd-Warshall, making it better for large sparse graphs.
+
+Dense Graph:
+In a dense graph, the number of edges E ≈ V². Considering the time complexities, Floyd-Warshall remains O(V³), while Johnson becomes O(V³ log V). This clearly indicates that Floyd-Warshall is more efficient than Johnson for dense graphs due to the extra log factor and overhead in Johnson’s algorithm.
+
+Conclusion:
+
+For small sparse graphs, Floyd-Warshall is better, resulting in lower execution time, energy consumption, and CO₂ emissions, which is better for the environment.
+
+For large sparse graphs, Johnson is preferred.
+
+For dense graphs, Floyd-Warshall is again better, being more efficient and environmentally friendly compared to Johnson.
